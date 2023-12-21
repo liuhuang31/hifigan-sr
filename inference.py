@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import glob
 import os
+import librosa
 import argparse
 import json
 import torch
@@ -25,6 +26,8 @@ def load_checkpoint(filepath, device):
 def get_mel(x):
     return mel_spectrogram(x, h.n_fft, h.num_mels, h.sampling_rate, h.hop_size, h.win_size, h.fmin, h.fmax)
 
+def get_mel_24k(x):
+    return mel_spectrogram(x, 1024, h.num_mels, 24000, 240, 1024, h.fmin, 8000)
 
 def scan_checkpoint(cp_dir, prefix):
     pattern = os.path.join(cp_dir, prefix + '*')
@@ -48,10 +51,12 @@ def inference(a):
     generator.remove_weight_norm()
     with torch.no_grad():
         for i, filname in enumerate(filelist):
-            wav, sr = load_wav(os.path.join(a.input_wavs_dir, filname))
-            wav = wav / MAX_WAV_VALUE
+            # wav, sr = load_wav(os.path.join(a.input_wavs_dir, filname))
+            # wav = wav / MAX_WAV_VALUE
+            wav, _ = librosa.load(os.path.join(a.input_wavs_dir, filname), mono=True, sr=16000)
+            wav = librosa.resample(wav, 16000, 24000, fix=True, scale=False) 
             wav = torch.FloatTensor(wav).to(device)
-            x = get_mel(wav.unsqueeze(0))
+            x = get_mel_24k(wav.unsqueeze(0))
             y_g_hat = generator(x)
             audio = y_g_hat.squeeze()
             audio = audio * MAX_WAV_VALUE
