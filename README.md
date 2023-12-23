@@ -3,6 +3,8 @@
 2. Clone this repository.
 3. Install python requirements. Please refer [requirements.txt](requirements.txt)
 4. Download a 48k dataset, such as [genshin](https://github.com/AI-Hobbyist/Genshin_Datasets) or VCTK.
+## SR model sample theory
+![sr](images/sr.png)
 
 ## SR results
 - origin 16k mel-spectrum
